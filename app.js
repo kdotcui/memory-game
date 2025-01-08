@@ -2,7 +2,7 @@
 
 // Constants and Configuration
 const gameContainer = document.getElementById("game");
-localStorage.setItem("lowestGuesses", 0);
+localStorage.setItem("lowestGuesses", Infinity);
 
 const COLORS = [
   "red",
@@ -38,6 +38,7 @@ function resetGame() {
   guesses = 0;
   shuffledColors = shuffle(COLORS);
   createDivsForColors(shuffledColors);
+  addScoreCounter();
 }
 
 // Add replay button
@@ -67,6 +68,8 @@ function handleMatch(card1, card2) {
   if (pairsFound === COLORS.length / 2) {
     console.log("You win!");
     addReplayButton();
+    console.log()
+    localStorage.setItem('lowestGuesses', Math.min(localStorage.getItem('lowestGuesses'),guesses));
   }
 }
 
@@ -91,6 +94,7 @@ function handleCardClick(event) {
 
   if (activeCards.length === 2) {
     guesses++;
+    document.querySelector('.guess-counter').innerText = `Current Guesses: ${guesses}`;
     const [card1, card2] = activeCards;
     if (card1.style.backgroundColor === card2.style.backgroundColor) {
       handleMatch(card1, card2);
@@ -109,6 +113,13 @@ function createDivsForColors(colorArray) {
     newDiv.addEventListener("click", handleCardClick);
     gameContainer.append(newDiv);
   });
+}
+
+function addScoreCounter() {
+  const guessCounter = document.createElement("p");
+  guessCounter.classList.add('guess-counter')
+  guessCounter.innerText = `Current Guesses: ${guesses}`;
+  gameContainer.appendChild(guessCounter);
 }
 
 // Game Initialization
