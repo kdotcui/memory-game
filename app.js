@@ -1,6 +1,8 @@
+// App.js
+
+// Constants and Configuration
 const gameContainer = document.getElementById("game");
-
-
+localStorage.setItem("lowestGuesses", 0);
 
 const COLORS = [
   "red",
@@ -15,83 +17,110 @@ const COLORS = [
   "purple"
 ];
 
-// Fisher Yates algorithm to shuffle cards
+// Utility Functions
+
+// Fisher-Yates algorithm to shuffle cards
 function shuffle(array) {
   let counter = array.length;
-
-  // While there are elements in the array
   while (counter > 0) {
-    // Pick a random index
     let index = Math.floor(Math.random() * counter);
-
-    // Decrease counter by 1
     counter--;
-
-    // And swap the last element with it
-    let temp = array[counter];
-    array[counter] = array[index];
-    array[index] = temp;
+    [array[counter], array[index]] = [array[index], array[counter]];
   }
-
   return array;
 }
 
-let shuffledColors = shuffle(COLORS);
+// Reset game state
+function resetGame() {
+  gameContainer.innerHTML = "";
+  activeCards = [];
+  pairsFound = 0;
+  guesses = 0;
+  shuffledColors = shuffle(COLORS);
+  createDivsForColors(shuffledColors);
+}
 
-// this function loops over the array of colors
-// it creates a new div and gives it a class with the value of the color
-// it also adds an event listener for a click for each card
-function createDivsForColors(colorArray) {
-  for (let color of colorArray) {
-    // create a new div
-    const newDiv = document.createElement("div");
+// Add replay button
+function addReplayButton() {
+  const replayButton = document.createElement("button");
+  replayButton.innerText = "Play Again!";
+  replayButton.addEventListener("click", () => {
+    replayButton.remove();
+    resetGame();
+  });
+  document.body.appendChild(replayButton);
+}
 
-    // give it a class attribute for the value we are looping over
-    newDiv.classList.add(color);
+// Game Logic
 
-    // call a function handleCardClick when a div is clicked on
-    newDiv.addEventListener("click", handleCardClick);
+let activeCards = [];
+let clickLock = false;
+let pairsFound = 0;
+let guesses = 0;
 
-    // append the div to the element with an id of game
-    gameContainer.append(newDiv);
+// Handle matching logic
+function handleMatch(card1, card2) {
+  pairsFound++;
+  activeCards = [];
+  console.log(`Pairs Found: ${pairsFound}`);
+
+  if (pairsFound === COLORS.length / 2) {
+    console.log("You win!");
+    addReplayButton();
   }
 }
 
-// TODO: Implement this function!
-let activeCards = []
-let clickLock = false;
+// Handle mismatch logic
+function handleMismatch(card1, card2) {
+  clickLock = true;
+  setTimeout(() => {
+    card1.style.backgroundColor = card2.style.backgroundColor = "white";
+    activeCards = [];
+    clickLock = false;
+  }, 750);
+}
+
+// Handle card click
 function handleCardClick(event) {
-  console.log("you just clicked", event.target);
-  let currCard = event.target;
-  if (activeCards.includes(currCard)) {
-    console.log('card is already selected');
-    return;
-  }
-  if (clickLock) {
-    console.log('wait to click')
-    return;
-  }
-  let cardColor = currCard.className
+  const currCard = event.target;
+  if (clickLock || activeCards.includes(currCard)) return;
+
+  const cardColor = currCard.className;
   currCard.style.backgroundColor = cardColor;
   activeCards.push(currCard);
 
-  if (activeCards.length == 2) {
-    clickLock = true;
-    let [card1, card2] = activeCards;
-    setTimeout(function() {
-        if (card1.style.backgroundColor !== card2.style.backgroundColor){
-          card1.style.backgroundColor = card2.style.backgroundColor = "white";
-        }
-        activeCards = []
-        clickLock = false;
-      }
-    , 750)
+  if (activeCards.length === 2) {
+    guesses++;
+    const [card1, card2] = activeCards;
+    if (card1.style.backgroundColor === card2.style.backgroundColor) {
+      handleMatch(card1, card2);
+    } else {
+      handleMismatch(card1, card2);
+    }
   }
-  
-
-  
 }
 
-// when the DOM loads
-createDivsForColors(shuffledColors);
+// DOM Manipulation
 
+function createDivsForColors(colorArray) {
+  colorArray.forEach(color => {
+    const newDiv = document.createElement("div");
+    newDiv.classList.add(color);
+    newDiv.addEventListener("click", handleCardClick);
+    gameContainer.append(newDiv);
+  });
+}
+
+// Game Initialization
+
+function initializeGame() {
+  const startButton = document.querySelector("#startButton");
+  startButton.addEventListener("click", () => {
+    startButton.remove();
+    resetGame();
+  });
+}
+
+// Start the game on DOM load
+let shuffledColors = shuffle(COLORS);
+initializeGame();
