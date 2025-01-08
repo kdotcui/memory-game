@@ -1,5 +1,6 @@
 const gameContainer = document.getElementById("game");
-let activeCards = []
+
+
 
 const COLORS = [
   "red",
@@ -57,22 +58,36 @@ function createDivsForColors(colorArray) {
 }
 
 // TODO: Implement this function!
+let activeCards = []
+let clickLock = false;
 function handleCardClick(event) {
   console.log("you just clicked", event.target);
-  let cardColor = event.target.className
-  event.target.style.backgroundColor = cardColor;
-  activeCards.push(event.target);
+  let currCard = event.target;
+  if (activeCards.includes(currCard)) {
+    console.log('card is already selected');
+    return;
+  }
+  if (clickLock) {
+    console.log('wait to click')
+    return;
+  }
+  let cardColor = currCard.className
+  currCard.style.backgroundColor = cardColor;
+  activeCards.push(currCard);
 
   if (activeCards.length == 2) {
+    clickLock = true;
     let [card1, card2] = activeCards;
     setTimeout(function() {
         if (card1.style.backgroundColor !== card2.style.backgroundColor){
           card1.style.backgroundColor = card2.style.backgroundColor = "white";
         }
         activeCards = []
+        clickLock = false;
       }
     , 750)
   }
+  
 
   
 }
