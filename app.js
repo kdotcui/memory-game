@@ -1,4 +1,5 @@
 const gameContainer = document.getElementById("game");
+let activeCards = []
 
 const COLORS = [
   "red",
@@ -13,9 +14,7 @@ const COLORS = [
   "purple"
 ];
 
-// here is a helper function to shuffle an array
-// it returns the same array with values shuffled
-// it is based on an algorithm called Fisher Yates if you want ot research more
+// Fisher Yates algorithm to shuffle cards
 function shuffle(array) {
   let counter = array.length;
 
@@ -59,9 +58,25 @@ function createDivsForColors(colorArray) {
 
 // TODO: Implement this function!
 function handleCardClick(event) {
-  // you can use event.target to see which element was clicked
   console.log("you just clicked", event.target);
+  let cardColor = event.target.className
+  event.target.style.backgroundColor = cardColor;
+  activeCards.push(event.target);
+
+  if (activeCards.length == 2) {
+    let [card1, card2] = activeCards;
+    setTimeout(function() {
+        if (card1.style.backgroundColor !== card2.style.backgroundColor){
+          card1.style.backgroundColor = card2.style.backgroundColor = "white";
+        }
+        activeCards = []
+      }
+    , 750)
+  }
+
+  
 }
 
 // when the DOM loads
 createDivsForColors(shuffledColors);
+
